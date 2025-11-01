@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, User, Calendar, FileText, Eye, CreditCard as Edit, Trash2, ExternalLink } from 'lucide-react';
+import { endpoints } from '../config/api';
 
 interface Patient {
   _id: string;
@@ -53,7 +54,7 @@ function BuscarPacientes() {
         ...(search && { search })
       });
 
-      const response = await fetch(`http://localhost:5000/api/patients?${queryParams}`);
+      const response = await fetch(`${endpoints.patients.getAll}?${queryParams}`);
       
       if (!response.ok) {
         throw new Error('Error al obtener los pacientes');
@@ -112,7 +113,7 @@ function BuscarPacientes() {
   const handleDeletePatient = async (patient: Patient) => {
     if (window.confirm(`¿Está seguro de eliminar al paciente ${patient.nombre}?`)) {
       try {
-        const response = await fetch(`http://localhost:5000/api/patients/${patient._id}`, {
+        const response = await fetch(endpoints.patients.delete(patient._id), {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -548,7 +549,7 @@ function BuscarPacientes() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800 font-medium">Error: {error}</p>
           <p className="text-red-600 text-sm mt-1">
-            Verifique que el servidor backend esté ejecutándose en http://localhost:5000
+            Verifique que el servidor backend esté ejecutándose
           </p>
         </div>
       )}

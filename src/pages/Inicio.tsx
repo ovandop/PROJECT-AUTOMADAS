@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Activity, FileText, TrendingUp, Clock, AlertTriangle } from 'lucide-react';
+import { endpoints } from '../config/api';
 
 interface Stats {
   totalPacientes: number;
@@ -43,15 +44,15 @@ function Inicio() {
     
     try {
       // Obtener estadísticas de pacientes
-      const patientsResponse = await fetch('http://localhost:5000/api/patients?limit=1');
+      const patientsResponse = await fetch(`${endpoints.patients.getAll}?limit=1`);
       const patientsData = await patientsResponse.json();
-      
+
       // Obtener estadísticas de triage
-      const triageStatsResponse = await fetch('http://localhost:5000/api/triage/stats');
+      const triageStatsResponse = await fetch(endpoints.triage.getStats);
       const triageStatsData = await triageStatsResponse.json();
-      
+
       // Obtener evaluaciones recientes
-      const recentTriageResponse = await fetch('http://localhost:5000/api/triage?limit=4');
+      const recentTriageResponse = await fetch(`${endpoints.triage.getAll}?limit=4`);
       const recentTriageData = await recentTriageResponse.json();
 
       if (patientsData.success && triageStatsData.success && recentTriageData.success) {
@@ -162,7 +163,7 @@ function Inicio() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800 font-medium">Error: {error}</p>
           <p className="text-red-600 text-sm mt-1">
-            Verifique que el servidor backend esté ejecutándose en http://localhost:5000
+            Verifique que el servidor backend esté ejecutándose
           </p>
           <button
             onClick={fetchDashboardData}

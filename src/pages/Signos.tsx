@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { endpoints } from '../config/api';
 
 interface PatientData {
   identificacion: string;
@@ -116,23 +117,78 @@ function Signos() {
     return 'V';
   };
 
-  const handleEvaluate = () => {
+  const handleEvaluate = async () => {
     const triage = calculateTriage();
     setTriageResult(triage);
-    
-    // Save complete patient record to localStorage
-    const completeRecord = {
-      patientData,
-      vitalSigns,
-      triageResult: triage,
-      evaluationDate: new Date().toLocaleString('es-CO')
-    };
-    localStorage.setItem('lastEvaluation', JSON.stringify(completeRecord));
-    
-    // Navigate to results page after evaluation
-    setTimeout(() => {
-      navigate('/resultado');
-    }, 2000); // Wait 2 seconds to show the result, then navigate
+
+    try {
+      // Primero, verificar si el paciente ya existe o crearlo
+      let patientId = null;
+
+      const checkPatientResponse = await fetch(endpoints.patients.getByIdentification(patientData!.identificacion));
+
+      if (checkPatientResponse.ok) {
+        const existingPatientData = await checkPatientResponse.json();
+        if (existingPatientData.success) {
+          patientId = existingPatientData.data._id;
+        }
+      } else {
+        // Si no existe, crear el paciente
+        const createPatientResponse = await fetch(endpoints.patients.create, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(patientData),
+        });
+
+        const createdPatientData = await createPatientResponse.json();
+        if (createdPatientData.success) {
+          patientId = createdPatientData.data._id;
+        }
+      }
+
+      // Crear la evaluación de triage
+      if (patientId) {
+        const triageResponse = await fetch(endpoints.triage.create, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            patientId,
+            vitalSigns,
+            observaciones: ''
+          }),
+        });
+
+        const triageData = await triageResponse.json();
+
+        if (triageData.success) {
+          // Save complete patient record to localStorage
+          const completeRecord = {
+            patientData,
+            vitalSigns,
+            triageResult: triage,
+            evaluationDate: new Date().toLocaleString('es-CO')
+          };
+          localStorage.setItem('lastEvaluation', JSON.stringify(completeRecord));
+
+          // Navigate to results page after evaluation
+          setTimeout(() => {
+            navigate('/resultado');
+          }, 2000);
+        } else {
+          throw new Error(triageData.message || 'Error al crear la evaluación');
+        }
+      } else {
+        throw new Error('No se pudo obtener o crear el paciente');
+      }
+    } catch (error) {
+      console.error('Error guardando evaluación:', error);
+      alert('Error al guardar la evaluación. Verifique la conexión con el servidor.');
+      setTriageResult(null);
+    }
   };
 
   if (!patientData) {

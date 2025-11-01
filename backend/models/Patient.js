@@ -5,8 +5,8 @@ const patientSchema = new mongoose.Schema({
   identificacion: {
     type: String,
     required: true,
-    unique: true,
-    trim: true
+    trim: true,
+    index: true
   },
   nombre: {
     type: String,
@@ -62,7 +62,6 @@ const patientSchema = new mongoose.Schema({
 });
 
 // Índices para búsquedas eficientes
-patientSchema.index({ identificacion: 1 });
 patientSchema.index({ nombre: 1 });
 patientSchema.index({ createdAt: -1 });
 

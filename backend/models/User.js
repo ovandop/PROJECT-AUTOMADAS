@@ -10,9 +10,9 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,     
     lowercase: true,
-    trim: true
+    trim: true,
+    index: true
   },
   password: {
     type: String,
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
   cedula: {
     type: String,
     required: true,
-    unique: true     
+    index: true
   },
   telefono: {
     type: String,
@@ -65,7 +65,5 @@ userSchema.pre('save', async function(next) {
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
-
-userSchema.index({ rol: 1 });
 
 export default mongoose.model('User', userSchema);
